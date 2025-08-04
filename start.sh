@@ -71,8 +71,9 @@ fi
 
 # Start LangGraph server
 echo -e "${BLUE}🚀 Starting LangGraph server on port $LANGGRAPH_PORT...${NC}"
-source venv/bin/activate
-nohup python -m cli.agent serve --port $LANGGRAPH_PORT > /tmp/langgraph-agent.log 2>&1 &
+PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
+nohup env PYTHONPATH="$PROJECT_DIR" "$PROJECT_DIR/venv/bin/python" -m cli.agent serve --port $LANGGRAPH_PORT \
+      > /tmp/langgraph-agent.log 2>&1 &
 LANGGRAPH_PID=$!
 echo $LANGGRAPH_PID > "$LANGGRAPH_PID_FILE"
 
