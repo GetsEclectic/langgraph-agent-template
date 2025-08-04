@@ -60,6 +60,22 @@ echo -e "${GREEN}✅ Python dependencies installed${NC}"
 echo -e "${BLUE}📦 Installing Node.js dependencies for chat UI...${NC}"
 cd agent-chat-ui
 npm install
+
+# Setup chat UI environment variables
+echo -e "${BLUE}🔑 Setting up chat UI environment variables...${NC}"
+if [ ! -f ".env" ]; then
+    if [ -f ".env.example" ]; then
+        cp .env.example .env
+        # Configure the chat UI to connect to the correct LangGraph server port
+        sed -i 's|NEXT_PUBLIC_API_URL=http://localhost:2024|NEXT_PUBLIC_API_URL=http://localhost:40003|g' .env
+        echo -e "${GREEN}✅ Created agent-chat-ui/.env file with correct configuration${NC}"
+    else
+        echo -e "${RED}❌ No agent-chat-ui/.env.example file found${NC}"
+    fi
+else
+    echo -e "${GREEN}✅ Found existing agent-chat-ui/.env file${NC}"
+fi
+
 cd ..
 echo -e "${GREEN}✅ Node.js dependencies installed${NC}"
 
