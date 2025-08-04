@@ -1,0 +1,17 @@
+servers:
+  filesystem:
+    command: "npx"
+    args: ["-y", "@modelcontextprotocol/server-filesystem", "."]
+    transport: "stdio"
+  # Example: Add more MCP servers here
+  # slack:
+  #   command: "python"
+  #   args: ["-m", "slack_mcp_server"]
+  #   transport: "stdio"
+  #   env:
+  #     SLACK_BOT_TOKEN: ${SLACK_BOT_TOKEN}
+  # notion:
+  #   url: "https://mcp.notion.so"
+  #   transport: "streamable_http"
+  #   headers:
+  #     Authorization: "Bearer ${NOTION_MCP_TOKEN}"

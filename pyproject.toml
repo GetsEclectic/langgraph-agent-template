@@ -1,0 +1,162 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "langgraph-agent-template"
+version = "0.1.0"
+description = "LangGraph Agent Template - Starter template for building AI agents with MCP integration, chat UI, and LangSmith observability"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    # Core agent framework
+    "langchain>=0.3.0",
+    "langchain-core>=0.3.0",
+    "langchain-community>=0.3.0",
+    "langgraph>=0.2.0",
+    "langsmith>=0.1.0",
+    
+    # MCP integration
+    "langchain-mcp-adapters>=0.1.0",
+    
+    # Model providers
+    "langchain-anthropic>=0.2.0",
+    
+    # State management and data models
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    
+    # Server components
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+    "sse-starlette>=1.6.0",
+    
+    # Utilities
+    "httpx>=0.25.0",
+    "python-dotenv>=1.0.0",
+    "click>=8.0.0",
+    "rich>=13.0.0",
+    "typer>=0.9.0",
+    "PyYAML>=6.0.0",
+    
+    # Date/time handling
+    "python-dateutil>=2.8.0",
+    "pytz>=2023.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    # Testing
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-mock>=3.10.0",
+    "vcrpy>=5.0.0",
+    
+    # Linting and formatting
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.5.0",
+    
+    # Type stubs
+    "types-python-dateutil>=2.8.0",
+    "types-pytz>=2023.3.0",
+    "types-PyYAML>=6.0.0",
+]
+
+[project.scripts]
+agent = "cli.agent:app"
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+per-file-ignores = { "__init__.py" = ["F401"] }
+
+[tool.mypy]
+python_version = "3.11"
+check_untyped_defs = true
+disallow_any_generics = true
+disallow_incomplete_defs = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_return_any = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "vcrpy.*",
+    "langchain_mcp_adapters.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "-ra",
+]
+markers = [
+    "unit: Unit tests (no external dependencies)",
+    "integration: Integration tests (requires external services)",
+    "vcr: Tests using VCR cassettes",
+]
+
+[tool.coverage.run]
+source = ["agent", "cli"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
