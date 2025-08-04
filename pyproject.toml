@@ -15,6 +15,7 @@ dependencies = [
     "langchain-community>=0.3.0",
     "langgraph>=0.2.0",
     "langgraph-api>=0.2.0",
+    "langgraph-cli[inmem]>=0.1.0",
     "langsmith>=0.1.0",
     
     # MCP integration
