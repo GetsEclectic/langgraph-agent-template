@@ -129,25 +129,3 @@ echo "   Chat UI:   /tmp/chat-ui-agent.log"
 echo ""
 echo -e "${YELLOW}💡 Press Ctrl+C to stop all services${NC}"
 echo ""
-
-# Keep script running and handle cleanup
-while true; do
-    # Check if processes are still running
-    if [ -f "$LANGGRAPH_PID_FILE" ]; then
-        LANGGRAPH_PID=$(cat "$LANGGRAPH_PID_FILE")
-        if ! kill -0 "$LANGGRAPH_PID" 2>/dev/null; then
-            echo -e "${RED}❌ LangGraph server stopped unexpectedly${NC}"
-            break
-        fi
-    fi
-    
-    if [ -f "$CHAT_UI_PID_FILE" ]; then
-        CHAT_UI_PID=$(cat "$CHAT_UI_PID_FILE")
-        if ! kill -0 "$CHAT_UI_PID" 2>/dev/null; then
-            echo -e "${RED}❌ Chat UI stopped unexpectedly${NC}"
-            break
-        fi
-    fi
-    
-    sleep 5
-done
