@@ -47,7 +47,17 @@
 
 ## Development Environment
 
-### Working Commands (Verified)
+### Quick Start (Automated)
+```bash
+# One-time setup after cloning
+./setup.sh                          # Install all dependencies
+
+# Start both services  
+./start.sh                          # Starts LangGraph + Chat UI
+# Access at: http://localhost:40004
+```
+
+### Manual Commands (If Needed)
 ```bash
 # Setup
 source venv/bin/activate              # Always run first
@@ -57,9 +67,9 @@ pip install -e ".[dev]"              # Install dependencies
 black . && ruff check . && mypy .    # Format, lint, type check
 ruff check --fix .                   # Auto-fix linting issues
 
-# Run agent server
-python -m cli.agent serve            # Start LangGraph server on port 8000
-python -m cli.agent chat-ui          # Start chat UI on port 3000
+# Run services manually
+python -m cli.agent serve --port 40003    # Start LangGraph server
+cd agent-chat-ui && npm run dev -- --port 40004  # Start chat UI
 
 # Test
 pytest                                # Run test suite
@@ -95,9 +105,16 @@ pytest                                # Run test suite
 
 ## Environment Variables
 
-Required in `.env` (copy from `.env.example`):
-- `LANGSMITH_API_KEY`: For tracing and observability
-- `ANTHROPIC_API_KEY`: For Claude model access
+**Required:** Create `.env` in project root:
+```bash
+LANGSMITH_API_KEY=your_langsmith_key_here
+ANTHROPIC_API_KEY=your_anthropic_key_here
+```
+
+**Chat UI:** Pre-configured in `agent-chat-ui/.env` (no setup needed)
+- Uses `localhost:40003` for LangGraph server
+- Uses `localhost:40004` for chat UI
+- Contains no secrets, safe to commit
 
 ## Working LangSmith Integration
 

@@ -66,6 +66,9 @@ dev = [
 [project.scripts]
 agent = "cli.agent:app"
 
+[tool.hatch.build.targets.wheel]
+packages = ["agent", "cli", "infra"]
+
 [tool.black]
 line-length = 88
 target-version = ['py311']

@@ -25,6 +25,6 @@ dist-ssr
 
 # LangGraph API
 .langgraph_api
-.env
+# Note: .env contains no secrets, only localhost config
 .next/
 next-env.d.ts

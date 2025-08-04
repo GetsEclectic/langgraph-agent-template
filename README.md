@@ -4,93 +4,50 @@ A complete starter template for building AI agents with LangGraph, featuring MCP
 
 ## ✨ Features
 
-- **🤖 LangGraph ReAct Agent** - Ready-to-use agent
+- **🤖 LangGraph ReAct Agent** - Ready-to-use agent with hardcoded prompts
 - **🔌 MCP Integration** - Model Context Protocol server support (filesystem included)
-- **💬 Langchain Chat UI** - Next.js-based web interface for agent interaction
+- **💬 Agent Chat UI** - Next.js-based web interface for agent interaction
 - **📊 LangSmith Tracing** - Built-in observability and monitoring
-- **🎯 LangSmith Prompt Hub** - Centralized prompt management and A/B testing
+- **🚀 One-Command Setup** - Automated setup and start scripts
 - **🧪 Test Suite** - End-to-end tests with MCP integration verification
 
 ## 🚀 Quick Start
 
-### 1. Environment Setup
+### 1. Clone and Setup
 
 ```bash
-# Clone and setup
 git clone <your-repo>
 cd <your-repo>
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -e ".[dev]"
-
-# Setup environment variables
-cp .env.example .env
-# Edit .env with your API keys
+# One-time setup (installs everything)
+./setup.sh
 ```
 
 ### 2. Configure Your Keys
 
-Edit `.env` with your API keys:
+Create `.env` in the project root:
 
 ```bash
-# Required
+# Required for agent functionality
 ANTHROPIC_API_KEY=your_anthropic_api_key_here
 LANGSMITH_API_KEY=your_langsmith_api_key_here
-
-# Optional: Customize project name
-LANGSMITH_PROJECT=your-project-name
 ```
 
-### 3. Set Up Your Prompt in LangSmith Hub
-
-The template uses LangSmith Prompt Hub for prompt management. This allows you to iterate on prompts without code changes:
-
-1. **Go to LangSmith Prompts**: https://smith.langchain.com/prompts
-2. **Create a new prompt** with the name: `langgraph-agent-system-prompt`
-3. **Copy the default template** from `agent/prompts.py` (see the docstring)
-4. **Save and publish** your prompt
-5. **Optional**: Update `langsmith_prompt_name` in `agent/config.py` if using a different name
-
-**Benefits of LangSmith Prompt Hub:**
-- 🔄 Iterate on prompts without code changes
-- 📊 A/B test different prompt versions
-- 👥 Collaborate on prompt development
-- 📈 Track performance metrics per prompt version
-
-### 4. Test Your Setup
+### 3. Start the Agent
 
 ```bash
-# Run tests to verify everything works
-pytest
+# Starts both LangGraph server and Chat UI
+./start.sh
 
-# Check code quality
-black . && ruff check . && mypy .
+# Access the web chat at: http://localhost:40004
 ```
 
-### 5. Start the Agent
+That's it! 🎉
 
-Choose your preferred interface:
-
-**Option A: Command Line Chat**
+**Alternative: Command Line Chat**
 ```bash
+source venv/bin/activate
 python -m cli.agent chat "Hello, what can you help me with?"
-```
-
-**Option B: Web Chat UI**
-```bash
-# Terminal 1: Start LangGraph server
-python -m cli.agent serve
-
-# Terminal 2: Start chat UI
-cd chat-ui
-npm install
-npm run dev
-
-# Open http://localhost:3000
 ```
 
 ## 🛠️ Customization Guide
@@ -127,14 +84,16 @@ npm run dev
 
 ### Modifying the Chat UI
 
-The chat UI is the langchain-chat-ui Next.js application in the `chat-ui/` directory:
+The chat UI is the official langchain agent-chat-ui in the `agent-chat-ui/` directory:
 
 ```bash
-cd chat-ui
+cd agent-chat-ui
 npm run dev        # Development
 npm run build      # Production build
 npm run start      # Production server
 ```
+
+**Configuration:** Pre-configured in `agent-chat-ui/.env` - no setup needed for localhost development.
 
 ### Adding Approval Workflow (Optional)
 
@@ -164,14 +123,15 @@ class ApprovalTool(BaseTool):
 /
 ├── agent/                   # Core agent implementation
 │   ├── graph.py             # LangGraph agent definition  
-│   ├── prompts.py           # System prompts and templates
+│   ├── prompts.py           # System prompts (hardcoded)
 │   ├── config.py            # Agent configuration options
 │   └── mcp_integration/     # MCP server configuration
-├── chat-ui/                 # Next.js chat interface
+├── agent-chat-ui/           # Next.js chat interface (pre-configured)
 ├── cli/                     # Command line interface
 ├── infra/                   # Infrastructure (LangSmith, etc.)
 ├── tests/                   # Test suite
-├── .env.example             # Environment template
+├── setup.sh                 # One-time setup script
+├── start.sh                 # Start both services script
 └── langgraph.json          # LangGraph deployment config
 ```
 
