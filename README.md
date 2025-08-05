@@ -36,8 +36,13 @@ LANGSMITH_API_KEY=your_langsmith_api_key_here
 ### 3. Start the Agent
 
 ```bash
-# Starts both LangGraph server and Chat UI
-./start.sh
+# Service management commands
+./services.sh               # Start both services (default)
+./services.sh start         # Start both services  
+./services.sh stop          # Stop both services
+./services.sh restart       # Restart both services
+./services.sh status        # Check service status
+./services.sh --help        # Show usage help
 
 # Access the web chat at: http://localhost:40004
 ```
@@ -131,7 +136,7 @@ class ApprovalTool(BaseTool):
 ├── infra/                   # Infrastructure (LangSmith, etc.)
 ├── tests/                   # Test suite
 ├── setup.sh                 # One-time setup script
-├── start.sh                 # Start both services script
+├── services.sh              # Service management script
 └── langgraph.json          # LangGraph deployment config
 ```
 

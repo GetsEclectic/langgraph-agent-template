@@ -52,8 +52,14 @@
 # One-time setup after cloning
 ./setup.sh                          # Install all dependencies
 
-# Start both services  
-./start.sh                          # Starts LangGraph + Chat UI
+# Service management
+./services.sh                       # Start both services (default)
+./services.sh start                 # Start both services  
+./services.sh stop                  # Stop both services
+./services.sh restart               # Restart both services
+./services.sh status                # Check service status
+./services.sh --help                # Show usage help
+
 # Access at: http://localhost:40004
 ```
 
