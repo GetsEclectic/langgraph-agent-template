@@ -16,35 +16,6 @@ CHAT_UI_PORT=40004
 LANGGRAPH_PID_FILE="/tmp/langgraph-agent.pid"
 CHAT_UI_PID_FILE="/tmp/chat-ui-agent.pid"
 
-# Cleanup function
-cleanup() {
-    echo ""
-    echo -e "${YELLOW}🛑 Shutting down services...${NC}"
-    
-    if [ -f "$LANGGRAPH_PID_FILE" ]; then
-        LANGGRAPH_PID=$(cat "$LANGGRAPH_PID_FILE")
-        if kill -0 "$LANGGRAPH_PID" 2>/dev/null; then
-            kill "$LANGGRAPH_PID"
-            echo -e "${GREEN}✅ LangGraph server stopped${NC}"
-        fi
-        rm -f "$LANGGRAPH_PID_FILE"
-    fi
-    
-    if [ -f "$CHAT_UI_PID_FILE" ]; then
-        CHAT_UI_PID=$(cat "$CHAT_UI_PID_FILE")
-        if kill -0 "$CHAT_UI_PID" 2>/dev/null; then
-            kill "$CHAT_UI_PID"
-            echo -e "${GREEN}✅ Chat UI stopped${NC}"
-        fi
-        rm -f "$CHAT_UI_PID_FILE"
-    fi
-    
-    echo -e "${GREEN}👋 Services stopped. Goodbye!${NC}"
-    exit 0
-}
-
-# Set trap for cleanup on script exit
-trap cleanup SIGINT SIGTERM EXIT
 
 echo "🚀 Starting LangGraph Agent Template"
 echo "====================================="
@@ -126,6 +97,3 @@ echo ""
 echo -e "${BLUE}📊 Logs:${NC}"
 echo "   LangGraph: /tmp/langgraph-agent.log"
 echo "   Chat UI:   /tmp/chat-ui-agent.log"
-echo ""
-echo -e "${YELLOW}💡 Press Ctrl+C to stop all services${NC}"
-echo ""

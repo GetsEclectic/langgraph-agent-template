@@ -145,6 +145,10 @@ cython_debug/
 # LangGraph runtime files
 .langgraph_api/
 
+# Agent Chat UI build artifacts
+agent-chat-ui/.next/
+agent-chat-ui/node_modules/
+
 # Google/GCP credentials and keys (security sensitive)
 gcp-oauth.keys.json
 .gdrive-server-credentials.json
