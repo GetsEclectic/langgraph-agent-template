@@ -65,18 +65,27 @@ docker compose build
 ```
 
 ### Local Development (Alternative)
+For development without Docker, you'll need Python 3.11+ and Node.js 18+:
+
 ```bash
-# Setup
-source venv/bin/activate              # Always run first
-pip install -e ".[dev]"              # Install dependencies
+# Setup Python environment
+python3 -m venv venv
+source venv/bin/activate
+pip install -e ".[dev]"
+
+# Setup Node.js dependencies
+cd agent-chat-ui && npm install && cd ..
+
+# Create environment file
+cp .env.example .env  # Add your API keys
 
 # Code quality (all working)
 black . && ruff check . && mypy .    # Format, lint, type check
 ruff check --fix .                   # Auto-fix linting issues
 
-# Run services manually
-python -m cli.agent serve --port 40003    # Start LangGraph server
-cd agent-chat-ui && npm run dev -- --port 40004  # Start chat UI
+# Run services manually (two terminals)
+python -m cli.agent serve --port 40003 --host 0.0.0.0    # Terminal 1
+cd agent-chat-ui && npm run dev -- --port 40004          # Terminal 2
 
 # Test
 pytest                                # Run test suite
