@@ -107,6 +107,7 @@ async def _chat_session(
 @app.command()
 def serve(
     port: int = typer.Option(8000, help="Port to bind the LangGraph server to"),
+    host: str = typer.Option("127.0.0.1", help="Host to bind the LangGraph server to"),
     allow_blocking: bool = typer.Option(False, help="Allow blocking operations (needed for LangSmith Hub)"),
 ) -> bool:
     """
@@ -125,7 +126,7 @@ def serve(
     )
 
     try:
-        cmd = ["langgraph", "dev", "--port", str(port)]
+        cmd = ["langgraph", "dev", "--port", str(port), "--host", host]
         if allow_blocking:
             cmd.append("--allow-blocking")
         result = subprocess.run(cmd, check=False)

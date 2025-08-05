@@ -1,0 +1,107 @@
+services:
+  agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: base
+    ports:
+      - "40003:40003"
+    environment:
+      - LANGSMITH_API_KEY=${LANGSMITH_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - LANGSMITH_PROJECT=${LANGSMITH_PROJECT:-langgraph-agent-template}
+    env_file:
+      - .env
+    volumes:
+      # Mount source code for development hot reload
+      - ./agent:/app/agent:ro
+      - ./cli:/app/cli:ro
+      - ./infra:/app/infra:ro
+    networks:
+      - langgraph-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:40003/threads", "-X", "POST", "-H", "Content-Type: application/json", "-d", "{}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  chat-ui:
+    build:
+      context: ./agent-chat-ui
+      dockerfile: Dockerfile
+      target: builder
+    ports:
+      - "40004:40004"
+    environment:
+      - NODE_ENV=development
+      - LANGGRAPH_API_URL=http://agent:40003
+      - NEXT_PUBLIC_API_URL=http://localhost:40004/api
+    volumes:
+      # Mount source code for development hot reload
+      - ./agent-chat-ui/src:/app/src:ro
+      - ./agent-chat-ui/public:/app/public:ro
+      - ./agent-chat-ui/components.json:/app/components.json:ro
+      - ./agent-chat-ui/tailwind.config.js:/app/tailwind.config.js:ro
+      - ./agent-chat-ui/postcss.config.mjs:/app/postcss.config.mjs:ro
+      - ./agent-chat-ui/next.config.mjs:/app/next.config.mjs:ro
+      - ./agent-chat-ui/tsconfig.json:/app/tsconfig.json:ro
+      # Exclude node_modules to use container's version
+    networks:
+      - langgraph-network
+    depends_on:
+      agent:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:40004"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+    command: ["pnpm", "run", "dev", "--port", "40004", "--hostname", "0.0.0.0"]
+
+  # Production-ready services (uncomment for production)
+  # agent-prod:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "40003:40003"
+  #   environment:
+  #     - LANGSMITH_API_KEY=${LANGSMITH_API_KEY}
+  #     - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+  #     - LANGSMITH_PROJECT=${LANGSMITH_PROJECT:-langgraph-agent-template}
+  #   env_file:
+  #     - .env
+  #   networks:
+  #     - langgraph-network
+  #   restart: unless-stopped
+  #   profiles:
+  #     - production
+
+  # chat-ui-prod:
+  #   build:
+  #     context: ./agent-chat-ui
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "40004:40004"
+  #   environment:
+  #     - NODE_ENV=production
+  #     - NEXT_PUBLIC_LANGGRAPH_API_URL=http://localhost:40003
+  #   networks:
+  #     - langgraph-network
+  #   depends_on:
+  #     - agent-prod
+  #   restart: unless-stopped
+  #   profiles:
+  #     - production
+
+networks:
+  langgraph-network:
+    driver: bridge
+
+volumes:
+  agent_cache:
+  node_modules_cache:

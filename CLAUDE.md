@@ -47,23 +47,24 @@
 
 ## Development Environment
 
-### Quick Start (Automated)
+### Docker (Recommended)
 ```bash
-# One-time setup after cloning
-./setup.sh                          # Install all dependencies
+# Development with hot reload
+docker compose -f docker-compose.dev.yml up
 
-# Service management
-./services.sh                       # Start both services (default)
-./services.sh start                 # Start both services  
-./services.sh stop                  # Stop both services
-./services.sh restart               # Restart both services
-./services.sh status                # Check service status
-./services.sh --help                # Show usage help
+# Production build
+docker compose up
+
+# Stop services
+docker compose down
+
+# Rebuild after changes
+docker compose build
 
 # Access at: http://localhost:40004
 ```
 
-### Manual Commands (If Needed)
+### Local Development (Alternative)
 ```bash
 # Setup
 source venv/bin/activate              # Always run first
