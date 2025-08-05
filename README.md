@@ -8,49 +8,62 @@ A complete starter template for building AI agents with LangGraph, featuring MCP
 - **🔌 MCP Integration** - Model Context Protocol server support (filesystem included)
 - **💬 Agent Chat UI** - Next.js-based web interface for agent interaction
 - **📊 LangSmith Tracing** - Built-in observability and monitoring
-- **🚀 One-Command Setup** - Automated setup and start scripts
-- **🧪 Test Suite** - End-to-end tests with MCP integration verification
+- **🐳 Docker Ready** - Containerized development with hot reload
+- **⚡ Fast Setup** - One command to start everything
 
 ## 🚀 Quick Start
 
-### 1. Clone and Setup
+### 1. Clone and Configure
 
 ```bash
 git clone <your-repo>
 cd <your-repo>
 
-# One-time setup (installs everything)
-./setup.sh
+# Create environment file
+cp .env.example .env
+# Edit .env and add your API keys:
+# ANTHROPIC_API_KEY=your_anthropic_api_key_here
+# LANGSMITH_API_KEY=your_langsmith_api_key_here
 ```
 
-### 2. Configure Your Keys
-
-Create `.env` in the project root:
+### 2. Start with Docker (Recommended)
 
 ```bash
-# Required for agent functionality
-ANTHROPIC_API_KEY=your_anthropic_api_key_here
-LANGSMITH_API_KEY=your_langsmith_api_key_here
+# Start both agent and chat UI
+docker compose up -d
+
+# View logs
+docker compose logs -f
+
+# Stop services
+docker compose down
 ```
 
-### 3. Start the Agent
+**Access the chat UI at: http://localhost:40004** 🎉
+
+### 3. Alternative: Local Development
+
+For development without Docker:
 
 ```bash
-# Service management commands
-./services.sh               # Start both services (default)
-./services.sh start         # Start both services  
-./services.sh stop          # Stop both services
-./services.sh restart       # Restart both services
-./services.sh status        # Check service status
-./services.sh --help        # Show usage help
+# Setup environment
+python3 -m venv venv
+source venv/bin/activate
+pip install -e ".[dev]"
+cd agent-chat-ui && npm install && cd ..
 
-# Access the web chat at: http://localhost:40004
+# Start services (requires 2 terminals)
+python -m cli.agent serve --port 40003 --host 0.0.0.0  # Terminal 1
+cd agent-chat-ui && npm run dev -- --port 40004        # Terminal 2
 ```
 
-That's it! 🎉
+### 4. Command Line Chat
 
-**Alternative: Command Line Chat**
 ```bash
+# With Docker
+docker compose exec agent python -m cli.agent chat "Hello!"
+
+# Local development
 source venv/bin/activate
 python -m cli.agent chat "Hello, what can you help me with?"
 ```
@@ -131,12 +144,15 @@ class ApprovalTool(BaseTool):
 │   ├── prompts.py           # System prompts (hardcoded)
 │   ├── config.py            # Agent configuration options
 │   └── mcp_integration/     # MCP server configuration
-├── agent-chat-ui/           # Next.js chat interface (pre-configured)
+├── agent-chat-ui/           # Next.js chat interface
+│   ├── Dockerfile           # Chat UI container
+│   └── .env                 # Pre-configured for localhost
 ├── cli/                     # Command line interface
 ├── infra/                   # Infrastructure (LangSmith, etc.)
 ├── tests/                   # Test suite
-├── setup.sh                 # One-time setup script
-├── services.sh              # Service management script
+├── Dockerfile               # Agent container
+├── docker-compose.yml       # Production Docker setup
+├── docker-compose.dev.yml   # Development with hot reload
 └── langgraph.json          # LangGraph deployment config
 ```
 
@@ -145,28 +161,43 @@ class ApprovalTool(BaseTool):
 ### Running Tests
 
 ```bash
-# All tests
+# With Docker
+docker compose exec agent pytest
+
+# Local development
+source venv/bin/activate
 pytest
 
 # Specific test file
-pytest tests/test_agent.py
-
-# With output
-pytest -v -s
+pytest tests/test_agent.py -v -s
 ```
 
 ### Code Quality
 
 ```bash
-# Format code
-black .
+# With Docker
+docker compose exec agent black . && docker compose exec agent ruff check . && docker compose exec agent mypy .
 
-# Lint code
-ruff check .
-ruff check --fix .  # Auto-fix issues
+# Local development
+source venv/bin/activate
+black .              # Format code
+ruff check .         # Lint code
+ruff check --fix .   # Auto-fix issues
+mypy .               # Type checking
+```
 
-# Type checking
-mypy .
+### Development Workflow
+
+```bash
+# Development with hot reload
+docker compose -f docker-compose.dev.yml up
+
+# Check logs
+docker compose logs -f agent
+docker compose logs -f chat-ui
+
+# Rebuild after dependency changes
+docker compose build
 ```
 
 ## 📊 Observability
@@ -191,14 +222,31 @@ langgraph deploy
 langgraph deploy --config langgraph.json
 ```
 
-### Docker
+### Docker Production
 
 ```bash
-# Build image
+# Production build and run
+docker compose up -d
+
+# Scale services
+docker compose up -d --scale agent=3
+
+# Use production-optimized images
+docker compose -f docker-compose.yml up -d
+```
+
+### Manual Docker Build
+
+```bash
+# Build agent image
 docker build -t my-agent .
 
-# Run container
-docker run -p 8000:8000 --env-file .env my-agent
+# Build chat UI image  
+docker build -t my-chat-ui ./agent-chat-ui
+
+# Run with custom configuration
+docker run -p 40003:40003 --env-file .env my-agent
+docker run -p 40004:40004 my-chat-ui
 ```
 
 ## 🤝 Contributing
