@@ -15,12 +15,13 @@ services:
     volumes:
       # Mount source code for development hot reload
       - ./agent:/app/agent:ro
-      - ./cli:/app/cli:ro
       - ./infra:/app/infra:ro
+      # Ensure the running container picks up graph entrypoint changes without rebuild
+      - ./langgraph.json:/app/langgraph.json:ro
     networks:
       - langgraph-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:40003/threads", "-X", "POST", "-H", "Content-Type: application/json", "-d", "{}"]
+      test: ["CMD", "curl", "-f", "http://localhost:40003/docs"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -60,7 +61,7 @@ services:
       retries: 3
       start_period: 15s
     restart: unless-stopped
-    command: ["pnpm", "run", "dev", "--port", "40004", "--hostname", "0.0.0.0"]
+    command: ["sh", "-lc", "corepack enable pnpm && pnpm run dev --port 40004 --hostname 0.0.0.0"]
 
   # Production-ready services (uncomment for production)
   # agent-prod:

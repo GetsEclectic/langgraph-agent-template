@@ -21,7 +21,7 @@ services:
     working_dir: /app
     networks:
       - langgraph-network
-    command: ["python", "-m", "cli.agent", "serve", "--port", "40003", "--host", "0.0.0.0", "--allow-blocking"]
+    command: ["langgraph", "dev", "--port", "40003", "--host", "0.0.0.0", "--allow-blocking"]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:40003/docs"]
       interval: 10s
@@ -54,7 +54,7 @@ services:
     depends_on:
       agent:
         condition: service_healthy
-    command: ["pnpm", "run", "dev", "--port", "40004", "--hostname", "0.0.0.0"]
+    command: ["sh", "-lc", "corepack enable pnpm && pnpm run dev --port 40004 --hostname 0.0.0.0"]
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:40004"]
       interval: 10s

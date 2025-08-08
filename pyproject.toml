@@ -65,11 +65,9 @@ dev = [
     "types-PyYAML>=6.0.0",
 ]
 
-[project.scripts]
-agent = "cli.agent:app"
 
 [tool.hatch.build.targets.wheel]
-packages = ["agent", "cli", "infra"]
+packages = ["agent", "infra"]
 
 [tool.black]
 line-length = 88
@@ -146,7 +144,7 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["agent", "cli"]
+source = ["agent", "infra"]
 omit = [
     "*/tests/*",
     "*/test_*",

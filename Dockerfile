@@ -32,7 +32,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Copy application code
 COPY agent/ ./agent/
-COPY cli/ ./cli/
 COPY infra/ ./infra/
 
 # Create non-root user for security
@@ -46,4 +45,4 @@ EXPOSE 40003
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:40003/threads -X POST -H "Content-Type: application/json" -d '{}' || exit 1
 
-CMD ["python", "-m", "cli.agent", "serve", "--port", "40003", "--host", "0.0.0.0"]
+CMD ["langgraph", "dev", "--port", "40003", "--host", "0.0.0.0", "--allow-blocking"]
