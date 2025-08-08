@@ -19,13 +19,16 @@ RUN pip install uv
 
 WORKDIR /app
 
+# Build arg: whether to install dev extras (defaults to true for dev images)
+ARG INSTALL_DEV=true
+
 # Copy dependency files first for better layer caching
 COPY pyproject.toml README.md langgraph.json ./
 
 # Install dependencies with BuildKit cache mount
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=cache,target=/root/.cache/pip \
-    uv pip install --system -e ".[dev]"
+    sh -c 'set -e; if [ "$INSTALL_DEV" = "true" ]; then EXTRAS="[dev]"; else EXTRAS=""; fi; uv pip install --system -e ".${EXTRAS}"'
 
 # Copy application code
 COPY agent/ ./agent/

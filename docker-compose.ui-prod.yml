@@ -1,4 +1,31 @@
 services:
+  agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: base
+      args:
+        INSTALL_DEV: "false"
+    ports:
+      - "40003:40003"
+    environment:
+      - LANGSMITH_API_KEY=${LANGSMITH_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - LANGSMITH_PROJECT=${LANGSMITH_PROJECT:-langgraph-agent-template}
+      - PYTHONPATH=/app
+    env_file:
+      - .env
+    networks:
+      - langgraph-network
+    command: ["python", "-m", "cli.agent", "serve", "--port", "40003", "--host", "0.0.0.0", "--allow-blocking"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:40003/docs"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
   chat-ui:
     build:
       context: ./agent-chat-ui
@@ -17,7 +44,6 @@ services:
       agent:
         condition: service_healthy
     # Override dev command (pnpm dev) with production server
-    command: ["node", "server.js"]
     # Clear dev bind mounts so the built app in the image is used
     volumes: []
     healthcheck:
@@ -27,3 +53,7 @@ services:
       retries: 3
       start_period: 5s
     restart: unless-stopped
+
+networks:
+  langgraph-network:
+    driver: bridge
