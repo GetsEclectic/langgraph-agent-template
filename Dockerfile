@@ -19,17 +19,19 @@ RUN pip install uv
 
 WORKDIR /app
 
+# Build arg: whether to install dev extras (defaults to true for dev images)
+ARG INSTALL_DEV=true
+
 # Copy dependency files first for better layer caching
 COPY pyproject.toml README.md langgraph.json ./
 
 # Install dependencies with BuildKit cache mount
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=cache,target=/root/.cache/pip \
-    uv pip install --system -e ".[dev]"
+    sh -c 'set -e; if [ "$INSTALL_DEV" = "true" ]; then EXTRAS="[dev]"; else EXTRAS=""; fi; uv pip install --system -e ".${EXTRAS}"'
 
 # Copy application code
 COPY agent/ ./agent/
-COPY cli/ ./cli/
 COPY infra/ ./infra/
 
 # Create non-root user for security
@@ -43,4 +45,4 @@ EXPOSE 40003
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:40003/threads -X POST -H "Content-Type: application/json" -d '{}' || exit 1
 
-CMD ["python", "-m", "cli.agent", "serve", "--port", "40003", "--host", "0.0.0.0"]
+CMD ["langgraph", "dev", "--port", "40003", "--host", "0.0.0.0", "--allow-blocking"]

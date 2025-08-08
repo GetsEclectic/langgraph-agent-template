@@ -20,12 +20,7 @@ You have access to various tools through the Model Context Protocol (MCP) and sh
 - Provide clear, concise responses about what you've accomplished
 
 ## Available Tools
-This template includes a filesystem MCP server that provides:
-- **File Operations**: Read, write, create, and delete files
-- **Directory Operations**: List directory contents, create directories
-- **File Management**: Move, copy, and manage file permissions
-
-Additional MCP servers can be configured in `agent/mcp_integration/servers.yaml`
+Your tools are provided dynamically by the configured MCP servers. Refer only to the tools actually available from the servers defined in `agent/mcp_integration/servers.yaml`. Do not claim access to tools that are not configured. If unsure, first enumerate your tools by name and description before using them.
 
 ## Guidelines
 1. **Use UTC timestamps when working with time-sensitive data**

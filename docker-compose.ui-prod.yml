@@ -4,6 +4,8 @@ services:
       context: .
       dockerfile: Dockerfile
       target: base
+      args:
+        INSTALL_DEV: "false"
     ports:
       - "40003:40003"
     environment:
@@ -13,12 +15,6 @@ services:
       - PYTHONPATH=/app
     env_file:
       - .env
-    volumes:
-      # Mount entire source for development with hot reload
-      - .:/app:cached
-      - /app/venv  # Exclude venv from mount
-      - agent_cache:/root/.cache
-    working_dir: /app
     networks:
       - langgraph-network
     command: ["langgraph", "dev", "--port", "40003", "--host", "0.0.0.0", "--allow-blocking"]
@@ -34,39 +30,30 @@ services:
     build:
       context: ./agent-chat-ui
       dockerfile: Dockerfile
-      target: deps
-    ports:
-      - "40004:40004"
+      target: runner
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
       - LANGGRAPH_API_URL=http://agent:40003
       - NEXT_PUBLIC_API_URL=http://localhost:40004/api
-      - WATCHPACK_POLLING=true  # Enable polling for file changes in Docker
-    volumes:
-      # Mount source for hot reload, but keep node_modules in container
-      - ./agent-chat-ui:/app:cached
-      - /app/node_modules
-      - /app/.next
-      - node_modules_cache:/app/node_modules
-    working_dir: /app
+    ports:
+      - "40004:40004"
     networks:
       - langgraph-network
     depends_on:
       agent:
         condition: service_healthy
-    command: ["sh", "-lc", "corepack enable pnpm && pnpm run dev --port 40004 --hostname 0.0.0.0"]
+    # Override dev command (pnpm dev) with production server
+    # Clear dev bind mounts so the built app in the image is used
+    volumes: []
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:40004"]
       interval: 10s
       timeout: 5s
       retries: 3
-      start_period: 10s
+      start_period: 5s
     restart: unless-stopped
 
 networks:
   langgraph-network:
     driver: bridge
-
-volumes:
-  agent_cache:
-  node_modules_cache:

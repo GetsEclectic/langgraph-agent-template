@@ -53,20 +53,10 @@ pip install -e ".[dev]"
 cd agent-chat-ui && npm install && cd ..
 
 # Start services (requires 2 terminals)
-python -m cli.agent serve --port 40003 --host 0.0.0.0  # Terminal 1
+langgraph dev --port 40003 --host 0.0.0.0              # Terminal 1
 cd agent-chat-ui && npm run dev -- --port 40004        # Terminal 2
 ```
 
-### 4. Command Line Chat
-
-```bash
-# With Docker
-docker compose exec agent python -m cli.agent chat "Hello!"
-
-# Local development
-source venv/bin/activate
-python -m cli.agent chat "Hello, what can you help me with?"
-```
 
 ## 🛠️ Customization Guide
 
@@ -147,9 +137,7 @@ class ApprovalTool(BaseTool):
 ├── agent-chat-ui/           # Next.js chat interface
 │   ├── Dockerfile           # Chat UI container
 │   └── .env                 # Pre-configured for localhost
-├── cli/                     # Command line interface
 ├── infra/                   # Infrastructure (LangSmith, etc.)
-├── tests/                   # Test suite
 ├── Dockerfile               # Agent container
 ├── docker-compose.yml       # Production Docker setup
 ├── docker-compose.dev.yml   # Development with hot reload
@@ -158,19 +146,6 @@ class ApprovalTool(BaseTool):
 
 ## 🧪 Development
 
-### Running Tests
-
-```bash
-# With Docker
-docker compose exec agent pytest
-
-# Local development
-source venv/bin/activate
-pytest
-
-# Specific test file
-pytest tests/test_agent.py -v -s
-```
 
 ### Code Quality
 
