@@ -1,0 +1,29 @@
+services:
+  chat-ui:
+    build:
+      context: ./agent-chat-ui
+      dockerfile: Dockerfile
+      target: runner
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+      - LANGGRAPH_API_URL=http://agent:40003
+      - NEXT_PUBLIC_API_URL=http://localhost:40004/api
+    ports:
+      - "40004:40004"
+    networks:
+      - langgraph-network
+    depends_on:
+      agent:
+        condition: service_healthy
+    # Override dev command (pnpm dev) with production server
+    command: ["node", "server.js"]
+    # Clear dev bind mounts so the built app in the image is used
+    volumes: []
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:40004"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped

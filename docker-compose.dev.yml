@@ -21,7 +21,7 @@ services:
     working_dir: /app
     networks:
       - langgraph-network
-    command: ["python", "-m", "cli.agent", "serve", "--port", "40003", "--host", "0.0.0.0"]
+    command: ["python", "-m", "cli.agent", "serve", "--port", "40003", "--host", "0.0.0.0", "--allow-blocking"]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:40003/docs"]
       interval: 10s
