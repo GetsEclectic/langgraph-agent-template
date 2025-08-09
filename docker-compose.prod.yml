@@ -43,8 +43,6 @@ services:
     depends_on:
       agent:
         condition: service_healthy
-    # Override dev command (pnpm dev) with production server
-    # Clear dev bind mounts so the built app in the image is used
     volumes: []
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:40004"]
