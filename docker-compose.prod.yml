@@ -1,0 +1,57 @@
+services:
+  agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: base
+      args:
+        INSTALL_DEV: "false"
+    ports:
+      - "40003:40003"
+    environment:
+      - LANGSMITH_API_KEY=${LANGSMITH_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - LANGSMITH_PROJECT=${LANGSMITH_PROJECT:-langgraph-agent-template}
+      - PYTHONPATH=/app
+    env_file:
+      - .env
+    networks:
+      - langgraph-network
+    command: ["langgraph", "dev", "--port", "40003", "--host", "0.0.0.0", "--allow-blocking"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:40003/docs"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
+  chat-ui:
+    build:
+      context: ./agent-chat-ui
+      dockerfile: Dockerfile
+      target: runner
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+      - LANGGRAPH_API_URL=http://agent:40003
+      - NEXT_PUBLIC_API_URL=http://localhost:40004/api
+    ports:
+      - "40004:40004"
+    networks:
+      - langgraph-network
+    depends_on:
+      agent:
+        condition: service_healthy
+    volumes: []
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:40004"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
+networks:
+  langgraph-network:
+    driver: bridge

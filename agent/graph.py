@@ -8,6 +8,7 @@ from typing import Any
 from langchain_anthropic import ChatAnthropic
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
+from agent.summarization import make_recent_tool_response_summarizer
 
 from agent.config import AgentConfig
 from agent.mcp_integration.config import get_mcp_client
@@ -33,6 +34,13 @@ async def make_graph() -> Any:
         stop=None,
     )
 
+    # Summarize only the most recent ToolMessage if it is very large
+    summarizer_hook = make_recent_tool_response_summarizer(
+        model,
+        trigger_tokens=8000,
+        summary_max_tokens=256,
+    )
+
     # Load prompt
     prompt_template = load_agent_prompt(config.langsmith_prompt_name)
     system_prompt = prompt_template.format(current_time=format_current_time())
@@ -46,6 +54,7 @@ async def make_graph() -> Any:
         model=model,
         tools=tools,
         prompt=system_prompt,
+        pre_model_hook=summarizer_hook,
         checkpointer=MemorySaver(),
     )
     return graph

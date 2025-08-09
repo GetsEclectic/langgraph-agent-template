@@ -139,8 +139,8 @@ class ApprovalTool(BaseTool):
 │   └── .env                 # Pre-configured for localhost
 ├── infra/                   # Infrastructure (LangSmith, etc.)
 ├── Dockerfile               # Agent container
-├── docker-compose.yml       # Production Docker setup
-├── docker-compose.dev.yml   # Development with hot reload
+├── docker-compose.yml       # Development with hot reload (default)
+├── docker-compose.prod.yml  # Production Docker setup
 └── langgraph.json          # LangGraph deployment config
 ```
 
@@ -201,13 +201,11 @@ langgraph deploy --config langgraph.json
 
 ```bash
 # Production build and run
-docker compose up -d
+docker compose -f docker-compose.prod.yml up -d
 
 # Scale services
-docker compose up -d --scale agent=3
+docker compose -f docker-compose.prod.yml up -d --scale agent=3
 
-# Use production-optimized images
-docker compose -f docker-compose.yml up -d
 ```
 
 ### Manual Docker Build
