@@ -57,4 +57,6 @@ async def make_graph() -> Any:
         pre_model_hook=summarizer_hook,
         checkpointer=MemorySaver(),
     )
+    # Increase default recursion limit from 25 to 50
+    graph = graph.with_config(recursion_limit=50)
     return graph
