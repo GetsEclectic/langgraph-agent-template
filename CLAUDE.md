@@ -156,7 +156,9 @@ Status: Live integration verified, traces flow to dashboard
 ## Runtime & MCP Tools
 
 - The server exports `make_graph()` (in `agent/graph.py`).
-- MCP tools are loaded via `agent/mcp_integration/config.py` by reading `servers.yaml`.
+- MCP tools are loaded via `agent/mcp_integration/config.py` with fallback logic:
+  - `servers.yaml` at project root (if exists) - custom config, gitignored
+  - `agent/mcp_integration/servers.yaml` - default template config
 - Follow LangGraph MCP docs: call `get_tools()` and pass into `create_react_agent`.
 
 Healthcheck endpoints:

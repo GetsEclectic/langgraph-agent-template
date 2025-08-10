@@ -4,7 +4,7 @@ Minimal wrapper around langchain_mcp_adapters per upstream docs:
 https://github.com/langchain-ai/langchain-mcp-adapters
 
 We simply:
-- Load YAML at agent/mcp_integration/servers.yaml (or MCP_SERVERS_CONFIG_PATH)
+- Load YAML at agent/mcp_integration/servers.yaml (default) or servers.yaml at project root (override)
 - Expand ${ENV_VAR} occurrences
 - Pass the resulting servers mapping directly to MultiServerMCPClient
 """
@@ -18,11 +18,29 @@ from langchain_mcp_adapters.client import MultiServerMCPClient
 
 
 def get_servers_config_path() -> Path:
-    """Return path to servers.yaml (overridable via MCP_SERVERS_CONFIG_PATH)."""
-    config_path = os.getenv("MCP_SERVERS_CONFIG_PATH")
-    if config_path:
-        return Path(config_path)
-    return Path(__file__).parent / "servers.yaml"
+    """
+    Return path to servers.yaml with fallback logic:
+    1. servers.yaml at project root (if exists)
+    2. agent/mcp_integration/servers.yaml (default)
+    
+    This function is robust to missing files and different environments.
+    """
+    # Try multiple possible project root locations
+    possible_roots = [
+        Path(__file__).parent.parent.parent,  # Local development
+        Path("/app/project_root"),  # Docker container mounted project root
+        Path("/app"),  # Docker container app directory
+        Path.cwd(),   # Current working directory
+    ]
+    
+    for project_root in possible_roots:
+        root_servers_yaml = project_root / "servers.yaml"
+        if root_servers_yaml.exists() and root_servers_yaml.is_file():
+            return root_servers_yaml
+    
+    # Use default location as fallback
+    default_path = Path(__file__).parent / "servers.yaml"
+    return default_path
 
 
 def _expand_env_vars(value: Any) -> Any:

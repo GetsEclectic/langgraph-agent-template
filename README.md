@@ -62,9 +62,23 @@ cd agent-chat-ui && npm run dev -- --port 40004        # Terminal 2
 
 ### Adding Your Own MCP Servers
 
-1. **Edit MCP Configuration**
+1. **MCP Configuration Options**
+   
+   The system uses `agent/mcp_integration/servers.yaml` by default. To customize without affecting the template:
+   
+   ```bash
+   # Create your own servers.yaml at project root (gitignored)
+   cp agent/mcp_integration/servers.yaml servers.yaml
+   # Edit servers.yaml with your configuration
+   ```
+   
+   **Configuration priority:**
+   - `servers.yaml` at project root (if exists) - your custom config
+   - `agent/mcp_integration/servers.yaml` - default template config
+
+2. **Edit MCP Configuration**
    ```yaml
-   # agent/mcp_integration/servers.yaml
+   # servers.yaml (at project root) or agent/mcp_integration/servers.yaml
    servers:
      filesystem:
        command: "npx"
@@ -78,7 +92,7 @@ cd agent-chat-ui && npm run dev -- --port 40004        # Terminal 2
        transport: "stdio"
    ```
 
-2. **Add Environment Variables** (if needed)
+3. **Add Environment Variables** (if needed)
    ```bash
    # .env
    YOUR_SERVER_TOKEN=your_token_here
