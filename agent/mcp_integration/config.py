@@ -22,15 +22,25 @@ def get_servers_config_path() -> Path:
     Return path to servers.yaml with fallback logic:
     1. servers.yaml at project root (if exists)
     2. agent/mcp_integration/servers.yaml (default)
-    """
-    # Check for override at project root
-    project_root = Path(__file__).parent.parent.parent
-    root_servers_yaml = project_root / "servers.yaml"
-    if root_servers_yaml.exists():
-        return root_servers_yaml
     
-    # Use default location
-    return Path(__file__).parent / "servers.yaml"
+    This function is robust to missing files and different environments.
+    """
+    # Try multiple possible project root locations
+    possible_roots = [
+        Path(__file__).parent.parent.parent,  # Local development
+        Path("/app/project_root"),  # Docker container mounted project root
+        Path("/app"),  # Docker container app directory
+        Path.cwd(),   # Current working directory
+    ]
+    
+    for project_root in possible_roots:
+        root_servers_yaml = project_root / "servers.yaml"
+        if root_servers_yaml.exists() and root_servers_yaml.is_file():
+            return root_servers_yaml
+    
+    # Use default location as fallback
+    default_path = Path(__file__).parent / "servers.yaml"
+    return default_path
 
 
 def _expand_env_vars(value: Any) -> Any:
