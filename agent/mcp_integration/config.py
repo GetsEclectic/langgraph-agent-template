@@ -4,7 +4,7 @@ Minimal wrapper around langchain_mcp_adapters per upstream docs:
 https://github.com/langchain-ai/langchain-mcp-adapters
 
 We simply:
-- Load YAML at agent/mcp_integration/servers.yaml (or MCP_SERVERS_CONFIG_PATH)
+- Load YAML at agent/mcp_integration/servers.yaml (default) or servers.yaml at project root (override)
 - Expand ${ENV_VAR} occurrences
 - Pass the resulting servers mapping directly to MultiServerMCPClient
 """
@@ -18,10 +18,18 @@ from langchain_mcp_adapters.client import MultiServerMCPClient
 
 
 def get_servers_config_path() -> Path:
-    """Return path to servers.yaml (overridable via MCP_SERVERS_CONFIG_PATH)."""
-    config_path = os.getenv("MCP_SERVERS_CONFIG_PATH")
-    if config_path:
-        return Path(config_path)
+    """
+    Return path to servers.yaml with fallback logic:
+    1. servers.yaml at project root (if exists)
+    2. agent/mcp_integration/servers.yaml (default)
+    """
+    # Check for override at project root
+    project_root = Path(__file__).parent.parent.parent
+    root_servers_yaml = project_root / "servers.yaml"
+    if root_servers_yaml.exists():
+        return root_servers_yaml
+    
+    # Use default location
     return Path(__file__).parent / "servers.yaml"
 
 
