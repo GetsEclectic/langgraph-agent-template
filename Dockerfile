@@ -35,6 +35,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Copy application code
 COPY agent/ ./agent/
 COPY infra/ ./infra/
+COPY scripts/ ./scripts/
 
 # Create non-root user for security
 RUN useradd --create-home --shell /bin/bash agent && \

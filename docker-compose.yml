@@ -16,6 +16,7 @@ services:
       # Mount source code for development hot reload
       - ./agent:/app/agent:ro
       - ./infra:/app/infra:ro
+      - ./scripts:/app/scripts:ro
       # Ensure the running container picks up graph entrypoint changes without rebuild
       - ./langgraph.json:/app/langgraph.json:ro
       # Mount project root to enable servers.yaml override detection
