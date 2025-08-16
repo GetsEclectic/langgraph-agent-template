@@ -12,7 +12,7 @@ from agent.summarization import make_recent_tool_response_summarizer
 
 from agent.config import AgentConfig
 from agent.mcp_integration.config import get_mcp_client
-from agent.prompts import format_current_time, load_agent_prompt
+from agent.prompts import format_current_time, load_agent_prompt, safe_format_prompt
 
 
 async def make_graph() -> Any:
@@ -43,7 +43,7 @@ async def make_graph() -> Any:
 
     # Load prompt
     prompt_template = load_agent_prompt(config.langsmith_prompt_name)
-    system_prompt = prompt_template.format(current_time=format_current_time())
+    system_prompt = safe_format_prompt(prompt_template, current_time=format_current_time())
 
     # Initialize MCP tools
     client = get_mcp_client()

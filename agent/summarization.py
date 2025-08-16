@@ -1,5 +1,5 @@
 """
-Utility for summarizing only the most recent tool response when it is large.
+Utility for truncating only the most recent tool response when it is large.
 
 Exports:
 - make_recent_tool_response_summarizer(model, *, trigger_tokens=8000, summary_max_tokens=256)
@@ -7,14 +7,21 @@ Exports:
 
 Behavior:
 - If the last message in state["messages"] is a ToolMessage and exceeds trigger_tokens
-  (using langchain-core's count_tokens_approximately), it is summarized via the provided model.
-- Only the last ToolMessage is replaced with its summary; the rest of the history is preserved.
+  (using langchain-core's count_tokens_approximately), it is truncated deterministically:
+  keep the first 4000 tokens and the last 4000 tokens (whitespace-delimited), inserting
+  a clear marker indicating that the middle portion was removed.
+- Only the last ToolMessage is replaced with its truncated content; the rest of the history is preserved.
 - The hook returns {"llm_input_messages": new_messages} to avoid mutating stored history.
+
+Notes:
+- The "tokens" here are approximate and defined by whitespace-delimited chunks for speed and simplicity.
+- The function signature is preserved; the model argument and summary_max_tokens are unused.
 """
 
+import re
 from typing import Any, List
 
-from langchain_core.messages import BaseMessage, ToolMessage, HumanMessage, SystemMessage
+from langchain_core.messages import BaseMessage, ToolMessage
 from langchain_core.messages.utils import count_tokens_approximately
 
 
@@ -28,35 +35,33 @@ def make_recent_tool_response_summarizer(
     summary_max_tokens: int = 256,
 ):
     """
-    Create a pre_model_hook that summarizes only the most recent ToolMessage if it is large.
+    Create a pre_model_hook that truncates only the most recent ToolMessage if it is large.
 
     Parameters:
-    - model: A LangChain chat model with .invoke([...]) support.
-    - trigger_tokens: Threshold (approx tokens) at which the last ToolMessage is summarized.
-    - summary_max_tokens: Target size for the summary (enforced via prompt instruction).
+    - model: Preserved for compatibility; not used.
+    - trigger_tokens: Threshold (approx tokens) at which the last ToolMessage is truncated.
+    - summary_max_tokens: Preserved for compatibility; not used.
 
     Returns:
     - A callable(state: dict) -> dict, suitable for use as pre_model_hook.
     """
 
-    def _summarize_text_via_llm(text: str) -> str:
-        prompt_messages = [
-            SystemMessage(
-                content=(
-                    "You are a precise summarizer. Produce a concise, faithful "
-                    "summary of the tool output, preserving key results, errors, "
-                    "identifiers, paths, and any actionable items. Do not invent details."
-                )
-            ),
-            HumanMessage(
-                content=(
-                    f"Summarize the following tool output in at most {summary_max_tokens} tokens:\n\n{text}"
-                )
-            ),
-        ]
-        result = model.invoke(prompt_messages)
-        content = result.content
-        return content if isinstance(content, str) else str(content)
+    HEAD_TOKENS = 4000
+    TAIL_TOKENS = 4000
+
+    def _truncate_head_tail(text: str) -> str:
+        # Tokenize approximately by whitespace
+        tokens = re.findall(r"\S+", text)
+        total_tokens = len(tokens)
+
+        if total_tokens <= HEAD_TOKENS + TAIL_TOKENS:
+            return text
+
+        head = " ".join(tokens[:HEAD_TOKENS])
+        tail = " ".join(tokens[-TAIL_TOKENS:])
+        omitted = max(total_tokens - HEAD_TOKENS - TAIL_TOKENS, 0)
+        marker = f"\n\n[... {omitted} tokens omitted from the middle ...]\n\n"
+        return f"{head}{marker}{tail}"
 
     def _hook(state: dict) -> dict:
         msgs: List[BaseMessage] = state.get("messages", [])
@@ -72,12 +77,12 @@ def make_recent_tool_response_summarizer(
         raw_content = (
             last_tool.content if isinstance(last_tool.content, str) else str(last_tool.content)
         )
-        summary_text = _summarize_text_via_llm(raw_content).strip()
-        if not summary_text:
+        truncated_text = _truncate_head_tail(raw_content).strip()
+        if not truncated_text:
             return {"llm_input_messages": msgs}
 
         summarized_tool = ToolMessage(
-            content=summary_text,
+            content=truncated_text,
             tool_call_id=last_tool.tool_call_id,  # preserve linkage to the original tool call
         )
         new_msgs = msgs[:-1] + [summarized_tool]

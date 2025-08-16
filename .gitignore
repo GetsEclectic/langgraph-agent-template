@@ -15,7 +15,7 @@ yarn-error.log*
 .env.local
 
 # MCP Server Override Config
-servers.yaml
+servers.json
 
 # Python
 __pycache__/

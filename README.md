@@ -64,32 +64,34 @@ cd agent-chat-ui && npm run dev -- --port 40004        # Terminal 2
 
 1. **MCP Configuration Options**
    
-   The system uses `agent/mcp_integration/servers.yaml` by default. To customize without affecting the template:
+   The system uses `agent/mcp_integration/servers.json` by default. To customize without affecting the template:
    
    ```bash
-   # Create your own servers.yaml at project root (gitignored)
-   cp agent/mcp_integration/servers.yaml servers.yaml
-   # Edit servers.yaml with your configuration
+   # Create your own servers.json at project root (gitignored)
+   cp agent/mcp_integration/servers.json servers.json
+   # Edit servers.json with your configuration
    ```
    
    **Configuration priority:**
-   - `servers.yaml` at project root (if exists) - your custom config
-   - `agent/mcp_integration/servers.yaml` - default template config
+   - `servers.json` at project root (if exists) - your custom config
+   - `agent/mcp_integration/servers.json` - default template config
 
 2. **Edit MCP Configuration**
-   ```yaml
-   # servers.yaml (at project root) or agent/mcp_integration/servers.yaml
-   servers:
-     filesystem:
-       command: "npx"
-       args: ["-y", "@modelcontextprotocol/server-filesystem", "."]
-       transport: "stdio"
-     
-     # Add your server here
-     your_server:
-       command: "your-command"
-       args: ["your", "args"]
-       transport: "stdio"
+   ```json
+   {
+     "servers": {
+       "filesystem": {
+         "command": "npx",
+         "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
+         "transport": "stdio"
+       },
+       "your_server": {
+         "command": "your-command",
+         "args": ["your", "args"],
+         "transport": "stdio"
+       }
+     }
+   }
    ```
 
 3. **Add Environment Variables** (if needed)
