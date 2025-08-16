@@ -1,0 +1,10 @@
+dataset:
+  name: template-sample
+  description: Sample dataset for evaluating generic question/answer behavior.
+  judge_model: anthropic:claude-3-5-sonnet-latest
+  examples:
+    - inputs:
+        question: "What is 2 + 2?"
+      outputs:
+        answer: "4"
+

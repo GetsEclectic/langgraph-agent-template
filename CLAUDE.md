@@ -40,13 +40,10 @@ Note: CLI and test suite have been removed to simplify runtime. The deployment p
 
 ## Development Environment
 
-### Docker (Recommended)
+### Containers (Only)
 ```bash
-# Development with hot reload
-docker compose -f docker-compose.dev.yml up
-
-# Production-like UI (faster than dev watcher)
-docker compose -f docker-compose.ui-prod.yml up
+# Start both agent and chat UI
+docker compose up -d
 
 # Stop services
 docker compose down
@@ -57,29 +54,6 @@ docker compose build
 # Access the chat UI at: http://localhost:40004
 ```
 
-### Local Development (Alternative)
-Requires Python 3.11+ and Node.js 18+:
-
-```bash
-# Setup Python environment
-python3 -m venv venv
-source venv/bin/activate
-pip install -e ".[dev]"
-
-# Setup Node.js dependencies
-cd agent-chat-ui && npm install && cd ..
-
-# Create environment file
-cp .env.example .env  # Add your API keys
-
-# Run services manually (two terminals)
-langgraph dev --port 40003 --host 0.0.0.0            # Terminal 1 (LangGraph server)
-cd agent-chat-ui && npm run dev -- --port 40004      # Terminal 2 (UI)
-
-# Code quality (all working)
-black . && ruff check . && mypy .    # Format, lint, type check
-ruff check --fix .                   # Auto-fix linting issues
-```
 
 ---
 
@@ -136,7 +110,7 @@ Chat UI: Pre-configured in `agent-chat-ui/.env` (no secrets)
 
 ---
 
-## Working LangSmith Integration
+## Working LangSmith Integration & Evaluations
 
 ```python
 # Import and use (already implemented)
@@ -147,6 +121,27 @@ from langsmith import traceable
 def your_function():
     # Automatically traced to LangSmith
     pass
+```
+
+Run YAML-driven evaluations inside the container:
+
+```bash
+docker compose exec agent python scripts/run_evaluation.py \
+  --dataset-file infra/langsmith/examples/sample_dataset.yaml \
+  --json
+```
+
+YAML schema:
+```yaml
+dataset:
+  name: my-eval-dataset
+  description: Optional description
+  judge_model: anthropic:claude-3-5-sonnet-latest
+  examples:
+    - inputs:
+        question: "What is 2 + 2?"
+      outputs:
+        answer: "4"
 ```
 
 Status: Live integration verified, traces flow to dashboard

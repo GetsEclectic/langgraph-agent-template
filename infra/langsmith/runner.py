@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from langsmith import Client
 
 from .config import LANGSMITH_PROJECT, get_langsmith_client
-from .datasets import ensure_filesystem_dataset
+from .datasets import (
+    ensure_dataset_with_examples,
+    parse_dataset_yaml,
+)
 from .evaluators import create_correctness_evaluator
 from .target import target as agent_target
 
@@ -47,24 +50,18 @@ def _make_target_wrapper():
     return _wrapped
 
 
-def run_filesystem_evaluation(
+def run_evaluation(
     *,
-    judge_model: str = "anthropic:claude-3-5-sonnet-latest",
-    experiment_prefix: str = "filesystem",
-    dataset_name: Optional[str] = None,
-    continuous: bool = False,
-    choices: Optional[List[float]] = None,
+    dataset_file: str,
+    experiment_prefix: str = "eval",
     project_name: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
-    Orchestrate the full evaluation run for the filesystem question.
+    Orchestrate a generic evaluation run using a YAML dataset file.
 
     Args:
-        judge_model: LLM-as-judge model (provider:model). Default Anthropc Sonnet.
+        dataset_file: Path to YAML file describing dataset examples.
         experiment_prefix: Prefix for LangSmith experiment.
-        dataset_name: Optional override dataset name. Defaults to FILESYSTEM_DATASET.
-        continuous: If True, evaluator returns float score in [0,1].
-        choices: Optional discrete scores list; mutually exclusive with 'continuous'.
         project_name: Optional override of LangSmith project name.
 
     Returns:
@@ -86,9 +83,19 @@ def run_filesystem_evaluation(
 
     client: Client = get_langsmith_client()
 
-    # Ensure dataset exists with the single example and dedupe by inputs
-    ds, removed = ensure_filesystem_dataset(client)
-    ds_name = dataset_name or ds.name
+    # Parse dataset YAML and ensure dataset/examples exist
+    parsed = parse_dataset_yaml(dataset_file)
+    derived_name = parsed.name
+    if not derived_name:
+        raise ValueError("Dataset YAML must include a 'name' field under 'dataset'.")
+
+    ds, removed = ensure_dataset_with_examples(
+        client,
+        name=derived_name,
+        description=parsed.description or "Evaluation dataset",
+        examples=parsed.examples,
+    )
+    ds_name = ds.name
     if removed:
         warnings.append(
             f"Removed {removed} duplicate example(s) with the same inputs from dataset '{ds_name}'."
@@ -96,7 +103,7 @@ def run_filesystem_evaluation(
 
     # Build evaluators
     evaluator = create_correctness_evaluator(
-        model=judge_model, continuous=continuous, choices=choices
+        model=parsed.judge_model or "anthropic:claude-3-5-sonnet-latest"
     )
     evaluators = [evaluator]
 

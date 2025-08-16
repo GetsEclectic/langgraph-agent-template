@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 import os
 import sys
-from typing import List, Optional
+from typing import Optional
 
 import typer
 from rich import print as rprint
@@ -17,10 +17,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from infra.langsmith.runner import run_filesystem_evaluation  # noqa: E402
-
-
-app = typer.Typer(help="Run LangSmith evaluations for the agent.")
+from infra.langsmith.runner import run_evaluation  # noqa: E402
 
 
 def _print_env_summary() -> None:
@@ -39,37 +36,21 @@ def _print_env_summary() -> None:
     console.print(table)
 
 
-@app.command("filesystem")
-def filesystem(
-    judge_model: str = typer.Option(
-        "anthropic:claude-3-5-sonnet-latest",
-        "--judge-model",
-        help="LLM-as-judge model (provider:model). Requires corresponding API key env var.",
+def main(
+    dataset_file: str = typer.Option(
+        ...,  # required
+        "--dataset-file",
+        help="Path to YAML file containing dataset examples.",
     ),
     experiment_prefix: str = typer.Option(
-        "filesystem",
+        "eval",
         "--experiment-prefix",
         help="Prefix to use for the LangSmith experiment name.",
-    ),
-    dataset_name: Optional[str] = typer.Option(
-        None,
-        "--dataset-name",
-        help="Override dataset name (defaults to ensured dataset created by the runner).",
     ),
     project_name: Optional[str] = typer.Option(
         None,
         "--project-name",
         help="Override LangSmith project name (defaults to env LANGSMITH_PROJECT or project default).",
-    ),
-    continuous: bool = typer.Option(
-        False,
-        "--continuous",
-        help="Return a continuous score in [0,1] instead of boolean.",
-    ),
-    choices: Optional[str] = typer.Option(
-        None,
-        "--choices",
-        help="Comma-separated list of allowed scores (e.g. '0,0.5,1'). Mutually exclusive with --continuous.",
     ),
     json_output: bool = typer.Option(
         False,
@@ -78,28 +59,13 @@ def filesystem(
     ),
 ):
     """
-    Run the evaluation and validate correctness against the expected answer.
+    Run a generic evaluation using a YAML dataset file and validate correctness against the expected answer.
     """
     _print_env_summary()
 
-    parsed_choices: Optional[List[float]] = None
-    if choices:
-        try:
-            parsed_choices = [float(x.strip()) for x in choices.split(",") if x.strip()]
-        except ValueError:
-            rprint("[red]Invalid --choices value. Must be comma-separated floats, e.g. '0,0.5,1'[/red]")
-            raise typer.Exit(code=2)
-
-    if continuous and parsed_choices:
-        rprint("[red]--continuous and --choices are mutually exclusive[/red]")
-        raise typer.Exit(code=2)
-
-    result = run_filesystem_evaluation(
-        judge_model=judge_model,
+    result = run_evaluation(
+        dataset_file=dataset_file,
         experiment_prefix=experiment_prefix,
-        dataset_name=dataset_name,
-        continuous=continuous,
-        choices=parsed_choices,
         project_name=project_name,
     )
 
@@ -130,4 +96,4 @@ def filesystem(
 
 
 if __name__ == "__main__":
-    app()
+    typer.run(main)

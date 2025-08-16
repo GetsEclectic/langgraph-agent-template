@@ -41,22 +41,6 @@ docker compose down
 
 **Access the chat UI at: http://localhost:40004** 🎉
 
-### 3. Alternative: Local Development
-
-For development without Docker:
-
-```bash
-# Setup environment
-python3 -m venv venv
-source venv/bin/activate
-pip install -e ".[dev]"
-cd agent-chat-ui && npm install && cd ..
-
-# Start services (requires 2 terminals)
-langgraph dev --port 40003 --host 0.0.0.0              # Terminal 1
-cd agent-chat-ui && npm run dev -- --port 40004        # Terminal 2
-```
-
 
 ## 🛠️ Customization Guide
 
@@ -108,16 +92,7 @@ cd agent-chat-ui && npm run dev -- --port 40004        # Terminal 2
 
 ### Modifying the Chat UI
 
-The chat UI is the official langchain agent-chat-ui in the `agent-chat-ui/` directory:
-
-```bash
-cd agent-chat-ui
-npm run dev        # Development
-npm run build      # Production build
-npm run start      # Production server
-```
-
-**Configuration:** Pre-configured in `agent-chat-ui/.env` - no setup needed for localhost development.
+The chat UI lives in `agent-chat-ui/`. For development and builds, use the provided containers.
 
 ### Adding Approval Workflow (Optional)
 
@@ -162,33 +137,37 @@ class ApprovalTool(BaseTool):
 
 ## 🧪 Development
 
-
 ### Code Quality
 
 ```bash
-# With Docker
-docker compose exec agent black . && docker compose exec agent ruff check . && docker compose exec agent mypy .
-
-# Local development
-source venv/bin/activate
-black .              # Format code
-ruff check .         # Lint code
-ruff check --fix .   # Auto-fix issues
-mypy .               # Type checking
+docker compose exec agent black . && \
+docker compose exec agent ruff check . && \
+docker compose exec agent mypy .
 ```
 
-### Development Workflow
+### Evaluations
+
+1. Create a YAML dataset (see sample at `infra/langsmith/examples/sample_dataset.yaml`).
+2. Run the evaluation inside the agent container:
 
 ```bash
-# Development with hot reload
-docker compose -f docker-compose.dev.yml up
+docker compose exec agent python scripts/run_evaluation.py \
+  --dataset-file infra/langsmith/examples/sample_dataset.yaml \
+  --json
+```
 
-# Check logs
-docker compose logs -f agent
-docker compose logs -f chat-ui
+YAML schema:
 
-# Rebuild after dependency changes
-docker compose build
+```yaml
+dataset:
+  name: my-eval-dataset            # required
+  description: Optional description
+  judge_model: anthropic:claude-3-5-sonnet-latest
+  examples:
+    - inputs:
+        question: "What is 2 + 2?"
+      outputs:
+        answer: "4"
 ```
 
 ## 📊 Observability
