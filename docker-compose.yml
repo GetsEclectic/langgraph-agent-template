@@ -15,11 +15,13 @@ services:
     volumes:
       # Mount source code for development hot reload
       - ./agent:/app/agent:ro
+      # Allow write access to prompts file specifically
+      - ./agent/prompts.py:/app/agent/prompts.py:rw
       - ./infra:/app/infra:ro
       - ./scripts:/app/scripts:ro
       # Ensure the running container picks up graph entrypoint changes without rebuild
       - ./langgraph.json:/app/langgraph.json:ro
-      # Mount project root to enable servers.yaml override detection
+      # Mount project root to enable servers.json override detection
       - .:/app/project_root:ro
     networks:
       - langgraph-network
