@@ -10,6 +10,7 @@ class AgentConfig(BaseModel):
 
     # Model configuration
     model_name: str = "claude-sonnet-4-20250514"
+    # model_name: str = "gpt-5"
     temperature: float = 0.1
     max_tokens: int = 4000
 

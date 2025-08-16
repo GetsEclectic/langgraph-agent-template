@@ -5,6 +5,7 @@ Exports an async make_graph() per langchain-mcp-adapters docs.
 
 from typing import Any
 
+from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
@@ -27,12 +28,26 @@ async def make_graph() -> Any:
     """
     # Initialize model config
     config = AgentConfig()
-    model = ChatAnthropic(
-        model_name=config.model_name,
-        temperature=config.temperature,
-        timeout=config.tool_timeout_seconds,
-        stop=None,
-    )
+
+    def _make_model() -> Any:
+        name = (config.model_name or "").lower()
+        # Simple routing based on model name
+        if "claude" in name or name.startswith("anthropic"):
+            return ChatAnthropic(
+                model_name=config.model_name,
+                temperature=config.temperature,
+                timeout=config.tool_timeout_seconds,
+                stop=None,
+            )
+        # Default to OpenAI for gpt-* and others
+        return ChatOpenAI(
+            model=config.model_name,
+            temperature=config.temperature,
+            max_tokens=config.max_tokens,
+            timeout=config.tool_timeout_seconds,
+        )
+
+    model = _make_model()
 
     # Summarize only the most recent ToolMessage if it is very large
     summarizer_hook = make_recent_tool_response_summarizer(
